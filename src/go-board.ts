@@ -167,7 +167,7 @@ export class GoBoard extends LitElement {
     }
     // If the stone is symbol, draw a text.
     else {
-      ctx.font = `${radius * 1.7}px serif`;
+      ctx.font = `${radius * 1.7}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#F4D99B';
