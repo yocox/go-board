@@ -7,6 +7,21 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
+enum StoneColor {
+  None,
+  Black,
+  White,
+}
+
+class Stone {
+  constructor(public x: number, public y: number, public color: StoneColor, public mark: string) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.mark = mark;
+  }
+}
+
 /**
  * An example element.
  *
@@ -59,18 +74,16 @@ export class GoBoard extends LitElement {
    */
   @property({ type: Array })
   stones = [
-    { x: 3, y: 3, color: 'black' },
-    { x: 3, y: 9, color: 'white' },
-    { x: 9, y: 2, color: 'white' },
-    { x: 10, y: 9, color: 'black' },
-  ];
-  marks = [
-    { x: 2, y: 5, color: 'A' },
-    { x: 5, y: 2, color: 'B' },
-    { x: 2, y: 2, color: '★' },
+    new Stone(3, 3, StoneColor.Black, ''),
+    new Stone(3, 9, StoneColor.White, ''),
+    new Stone(9, 2, StoneColor.White, ''),
+    new Stone(10, 9, StoneColor.Black, ''),
+    new Stone(2, 5, StoneColor.None, 'A'),
+    new Stone(5, 2, StoneColor.None, 'B'),
+    new Stone(2, 2, StoneColor.None, '★'),
   ];
 
-  private _findStone(x: number, y: number): { x: number, y: number, color: string } | null {
+  private _findStone(x: number, y: number): Stone | null {
     for (const stone of this.stones) {
       if (stone.x === x && stone.y === y) {
         return stone;
@@ -79,12 +92,12 @@ export class GoBoard extends LitElement {
     return null;
   }
 
-  private _putStone(x: number, y: number, color: string) {
+  private _putStone(x: number, y: number, color: StoneColor) {
     const stone = this._findStone(x, y);
     if (stone) {
       return;
     } else {
-      this.stones.push({ x: x, y: y, color: color });
+      this.stones.push(new Stone(x, y, color, ''));
     }
   }
 
@@ -147,15 +160,15 @@ export class GoBoard extends LitElement {
     }
   }
 
-  private _drawStone(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, stone: { x: number, y: number, color: string }, alpha: number) {
+  private _drawStone(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, stone: Stone, alpha: number) {
     const gr = this.grid_ratio;
     const w = canvas.width;
     const h = w;
     const radius = gr * w / 2 * 0.85;
     const a = alpha;
     // If the stone is black or white, draw a circle.
-    if (stone.color === 'black' || stone.color === 'white') {
-      const color = stone.color === 'black' ? `rgba(0, 0, 0, ${a})` : `rgba(255, 255, 255, ${a})`;
+    if (stone.color === StoneColor.Black || stone.color === StoneColor.White) {
+      const color = stone.color === StoneColor.Black ? `rgba(0, 0, 0, ${a})` : `rgba(255, 255, 255, ${a})`;
       ctx.strokeStyle = color;
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -171,10 +184,10 @@ export class GoBoard extends LitElement {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#F4D99B';
-      // ctx.fillStyle = 'black';
+      // ctx.fillStyle = StoneColor.Black;
       ctx.fillRect((stone.x + this.margin + 0.0625) * gr * w, (stone.y + this.margin + 0.0625) * gr * h, gr * w * 0.85, gr * h * 0.85);
       ctx.fillStyle = 'black';
-      ctx.fillText(stone.color, (stone.x + this.margin + 0.5) * gr * w, (stone.y + this.margin + 0.54) * gr * h);
+      ctx.fillText(stone.mark, (stone.x + this.margin + 0.5) * gr * w, (stone.y + this.margin + 0.54) * gr * h);
     }
 
   }
@@ -182,12 +195,6 @@ export class GoBoard extends LitElement {
   private _drawStones(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
     for (const stone of this.stones) {
       this._drawStone(canvas, ctx, stone, 1.0);
-    }
-  }
-
-  private _drawMarks(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
-    for (const branch of this.marks) {
-      this._drawStone(canvas, ctx, branch, 1.0);
     }
   }
 
@@ -199,7 +206,7 @@ export class GoBoard extends LitElement {
     if (this.cursor_pos.x >= this.size || this.cursor_pos.y >= this.size) {
       return;
     }
-    const stone = { x: this.cursor_pos.x, y: this.cursor_pos.y, color: this.current_color };
+    const stone = new Stone(this.cursor_pos.x, this.cursor_pos.y, this.current_color, '');
     this._drawStone(canvas, ctx, stone, 0.3);
   }
 
@@ -210,7 +217,6 @@ export class GoBoard extends LitElement {
     canvas.height = canvas.offsetHeight;
     this._drawBoard(canvas, ctx);
     this._drawStones(canvas, ctx);
-    this._drawMarks(canvas, ctx);
     this._drawCursor(canvas, ctx);
   }
 
@@ -227,10 +233,10 @@ export class GoBoard extends LitElement {
     // this.dispatchEvent(new CustomEvent('play-stone'));
     this.drawBoard();
 
-    if (this.current_color === 'black') {
-      this.current_color = 'white';
+    if (this.current_color === StoneColor.Black) {
+      this.current_color = StoneColor.White;
     } else {
-      this.current_color = 'black';
+      this.current_color = StoneColor.Black;
     }
   }
 
@@ -243,7 +249,7 @@ export class GoBoard extends LitElement {
     return { x: grid_x, y: grid_y };
   }
 
-  current_color = 'black';
+  current_color = StoneColor.Black;
   cursor_pos = { x: -1, y: -1 };
 
   private _onLeave() {
