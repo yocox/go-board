@@ -7,13 +7,13 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-enum StoneColor {
+export enum StoneColor {
   None,
   Black,
   White,
 }
 
-class Stone {
+export class Stone {
   constructor(public x: number, public y: number, public color: StoneColor, public mark: string) {
     this.x = x;
     this.y = y;
@@ -26,7 +26,6 @@ class Stone {
  * An example element.
  *
  * @fires play-stone - Indicates when the count changes
- * @slot - This element has a slot
  * @csspart button - The button
  */
 @customElement('go-board')
@@ -34,7 +33,7 @@ export class GoBoard extends LitElement {
   static override styles = css`
     :host {
       display: block;
-      border: solid 1px gray;
+      // border: solid 1px gray;
       padding: 0px;
       background-color: #F4D99B;
     }
@@ -73,15 +72,7 @@ export class GoBoard extends LitElement {
    * The stones of the board.
    */
   @property({ type: Array })
-  stones = [
-    new Stone(3, 3, StoneColor.Black, ''),
-    new Stone(3, 9, StoneColor.White, ''),
-    new Stone(9, 2, StoneColor.White, ''),
-    new Stone(10, 9, StoneColor.Black, ''),
-    new Stone(2, 5, StoneColor.None, 'A'),
-    new Stone(5, 2, StoneColor.None, 'B'),
-    new Stone(2, 2, StoneColor.None, '★'),
-  ];
+  stones: Stone[] = [];
 
   private _findStone(x: number, y: number): Stone | null {
     for (const stone of this.stones) {
@@ -167,25 +158,25 @@ export class GoBoard extends LitElement {
     const radius = gr * w / 2 * 0.85;
     const a = alpha;
     // If the stone is black or white, draw a circle.
-    if (stone.color === StoneColor.Black || stone.color === StoneColor.White) {
-      const color = stone.color === StoneColor.Black ? `rgba(0, 0, 0, ${a})` : `rgba(255, 255, 255, ${a})`;
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc((stone.x + this.margin + 0.5) * gr * w, (stone.y + this.margin + 0.5) * gr * h, radius, 0, 2 * Math.PI);
-      ctx.fillStyle = color;
-      ctx.fill();
-      ctx.stroke();
-      ctx.closePath();
-    }
+    const color = stone.color === StoneColor.Black ? `rgba(0, 0, 0, ${a})` :
+      stone.color === StoneColor.White ? `rgba(255, 255, 255, ${a})` :
+        '#F4D99B';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc((stone.x + this.margin + 0.5) * gr * w, (stone.y + this.margin + 0.5) * gr * h, radius, 0, 2 * Math.PI);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.stroke();
+    ctx.closePath();
     // If the stone is symbol, draw a text.
-    else {
+    if (stone.mark.length > 0) {
       ctx.font = `${radius * 1.7}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#F4D99B';
       // ctx.fillStyle = StoneColor.Black;
-      ctx.fillRect((stone.x + this.margin + 0.0625) * gr * w, (stone.y + this.margin + 0.0625) * gr * h, gr * w * 0.85, gr * h * 0.85);
+      // ctx.fillRect((stone.x + this.margin + 0.0625) * gr * w, (stone.y + this.margin + 0.0625) * gr * h, gr * w * 0.85, gr * h * 0.85);
       ctx.fillStyle = 'black';
       ctx.fillText(stone.mark, (stone.x + this.margin + 0.5) * gr * w, (stone.y + this.margin + 0.54) * gr * h);
     }

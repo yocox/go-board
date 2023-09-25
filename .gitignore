@@ -7,5 +7,10 @@ go-board.js
 go-board.js.map
 go-board.d.ts
 go-board.d.ts.map
+labeled-connector.d.ts
+labeled-connector.d.ts.map
+labeled-connector.js
+labeled-connector.js.map
+
 # only generated for size check
 go-board.bundled.js
